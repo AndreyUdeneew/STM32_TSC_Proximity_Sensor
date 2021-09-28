@@ -19,7 +19,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "touchsensing.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -43,8 +42,9 @@
 /* Private variables ---------------------------------------------------------*/
 TSC_HandleTypeDef htsc;
 
-/* USER CODE BEGIN PV */
 
+/* USER CODE BEGIN PV */
+uint16_t OUT;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -87,17 +87,47 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
-  MX_GPIO_Init();
   MX_TSC_Init();
-  MX_TOUCHSENSING_Init();
+  MX_GPIO_Init();
+
   /* USER CODE BEGIN 2 */
+HAL_TSC_Start(&htsc);	//correct
+//  RCC->AHB1ENR |= RCC_AHB1ENR_TSCEN;
+//  TSC->CR = TSC_CR_PGPSC_2 | TSC_CR_PGPSC_0 | TSC_CR_CTPH_0 | TSC_CR_CTPL_0 | TSC_CR_MCV_2 | TSC_CR_MCV_1 | TSC_CR_TSCE; /* (1) */
+//  TSC->IOHCR &= (uint32_t)(~(TSC_IOHCR_G3_IO1 | TSC_IOHCR_G3_IO2)); /* (hysteresis disable) */
+//
+//TSC->IOSCR |= (1 << TSC_IOSCR_G3_IO1); /* (sampling) */
+//TSC->IOCCR |= (1 << TSC_IOCCR_G3_IO2); /* (channel) */
+//TSC->IOGCSR |= (1 << TSC_IOGCSR_G3E);
+//
+TSC->CR |= (1 << TSC_CR_TSCE);
+//TSC->CR |= (1 << TSC_CR_START);
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+HAL_TSC_IODischarge(&htsc, ENABLE);
+HAL_Delay(1);
   while (1)
   {
+
+	  TSC->CR |= (1 << TSC_CR_TSCE);
+//	  while((TSC -> CR & TSC_CR_START)!=0){};	//check of ready (start bit = 0)
+	  while (HAL_TSC_GetState(&htsc) == HAL_TSC_STATE_BUSY){}
+	  HAL_TSC_IODischarge(&htsc, ENABLE);
+	  HAL_Delay(10);
+	  __HAL_TSC_CLEAR_FLAG(&htsc, (TSC_FLAG_EOA | TSC_FLAG_MCE));
+	  if (HAL_TSC_GroupGetStatus(&htsc, TSC_GROUP3_IDX) == TSC_GROUP_COMPLETED){
+	      OUT = HAL_TSC_GroupGetValue(&htsc, TSC_GROUP3_IDX);
+	  }
+
+//	  TSC->CR |= (1 << TSC_CR_START);
+////		  OUT = TSC->IOGXCR[2];	// for group 3, correct
+//	  OUT=HAL_TSC_GroupGetValue(&htsc, TSC_GROUP3_IDX);		//correct
+//	  TSC->IOCCR &= ~0b1111; // отключение всех каналов группы
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -114,6 +144,12 @@ void SystemClock_Config(void)
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
+  /** Configure the main internal regulator output voltage
+  */
+  if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
@@ -144,12 +180,6 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  /** Configure the main internal regulator output voltage
-  */
-  if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK)
-  {
-    Error_Handler();
-  }
 }
 
 /**
@@ -176,16 +206,14 @@ static void MX_TSC_Init(void)
   htsc.Init.SpreadSpectrumDeviation = 1;
   htsc.Init.SpreadSpectrumPrescaler = TSC_SS_PRESC_DIV1;
   htsc.Init.PulseGeneratorPrescaler = TSC_PG_PRESC_DIV1;
-  htsc.Init.MaxCountValue = TSC_MCV_8191;
+  htsc.Init.MaxCountValue = TSC_MCV_16383;
   htsc.Init.IODefaultMode = TSC_IODEF_IN_FLOAT;
   htsc.Init.SynchroPinPolarity = TSC_SYNC_POLARITY_FALLING;
   htsc.Init.AcquisitionMode = TSC_ACQ_MODE_NORMAL;
   htsc.Init.MaxCountInterrupt = DISABLE;
-  htsc.Init.ChannelIOs = TSC_GROUP1_IO1|TSC_GROUP1_IO2|TSC_GROUP1_IO3|TSC_GROUP2_IO2
-                    |TSC_GROUP2_IO3|TSC_GROUP3_IO2|TSC_GROUP3_IO3|TSC_GROUP3_IO4
-                    |TSC_GROUP4_IO1|TSC_GROUP4_IO2|TSC_GROUP4_IO3;
+  htsc.Init.ChannelIOs = TSC_GROUP3_IO2;
   htsc.Init.ShieldIOs = 0;
-  htsc.Init.SamplingIOs = TSC_GROUP1_IO4|TSC_GROUP2_IO4|TSC_GROUP3_IO1|TSC_GROUP4_IO4;
+  htsc.Init.SamplingIOs = TSC_GROUP3_IO1;
   if (HAL_TSC_Init(&htsc) != HAL_OK)
   {
     Error_Handler();
@@ -207,7 +235,6 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */

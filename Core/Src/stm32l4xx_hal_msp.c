@@ -94,62 +94,25 @@ void HAL_TSC_MspInit(TSC_HandleTypeDef* htsc)
     /* Peripheral clock enable */
     __HAL_RCC_TSC_CLK_ENABLE();
 
-    __HAL_RCC_GPIOB_CLK_ENABLE();
-    __HAL_RCC_GPIOC_CLK_ENABLE();
     __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOC_CLK_ENABLE();
     /**TSC GPIO Configuration
-    PB12     ------> TSC_G1_IO1
-    PB13     ------> TSC_G1_IO2
-    PB14     ------> TSC_G1_IO3
-    PB15     ------> TSC_G1_IO4
-    PC6     ------> TSC_G4_IO1
-    PC7     ------> TSC_G4_IO2
-    PC8     ------> TSC_G4_IO3
-    PC9     ------> TSC_G4_IO4
     PA15 (JTDI)     ------> TSC_G3_IO1
     PC10     ------> TSC_G3_IO2
-    PC11     ------> TSC_G3_IO3
-    PC12     ------> TSC_G3_IO4
-    PB5     ------> TSC_G2_IO2
-    PB6     ------> TSC_G2_IO3
-    PB7     ------> TSC_G2_IO4
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_5
-                          |GPIO_PIN_6;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF9_TSC;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = GPIO_PIN_15|GPIO_PIN_7;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF9_TSC;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_8|SENSOR_Pin
-                          |GPIO_PIN_11|GPIO_PIN_12;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF9_TSC;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = GPIO_PIN_9;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF9_TSC;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
     GPIO_InitStruct.Pin = Csample_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Alternate = GPIO_AF9_TSC;
     HAL_GPIO_Init(Csample_GPIO_Port, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = SENSOR_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Alternate = GPIO_AF9_TSC;
+    HAL_GPIO_Init(SENSOR_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN TSC_MspInit 1 */
 
@@ -175,29 +138,12 @@ void HAL_TSC_MspDeInit(TSC_HandleTypeDef* htsc)
     __HAL_RCC_TSC_CLK_DISABLE();
 
     /**TSC GPIO Configuration
-    PB12     ------> TSC_G1_IO1
-    PB13     ------> TSC_G1_IO2
-    PB14     ------> TSC_G1_IO3
-    PB15     ------> TSC_G1_IO4
-    PC6     ------> TSC_G4_IO1
-    PC7     ------> TSC_G4_IO2
-    PC8     ------> TSC_G4_IO3
-    PC9     ------> TSC_G4_IO4
     PA15 (JTDI)     ------> TSC_G3_IO1
     PC10     ------> TSC_G3_IO2
-    PC11     ------> TSC_G3_IO3
-    PC12     ------> TSC_G3_IO4
-    PB5     ------> TSC_G2_IO2
-    PB6     ------> TSC_G2_IO3
-    PB7     ------> TSC_G2_IO4
     */
-    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15
-                          |GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7);
-
-    HAL_GPIO_DeInit(GPIOC, GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9
-                          |SENSOR_Pin|GPIO_PIN_11|GPIO_PIN_12);
-
     HAL_GPIO_DeInit(Csample_GPIO_Port, Csample_Pin);
+
+    HAL_GPIO_DeInit(SENSOR_GPIO_Port, SENSOR_Pin);
 
   /* USER CODE BEGIN TSC_MspDeInit 1 */
 
