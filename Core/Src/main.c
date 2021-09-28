@@ -92,17 +92,7 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 HAL_TSC_Start(&htsc);	//correct
-//  RCC->AHB1ENR |= RCC_AHB1ENR_TSCEN;
-//  TSC->CR = TSC_CR_PGPSC_2 | TSC_CR_PGPSC_0 | TSC_CR_CTPH_0 | TSC_CR_CTPL_0 | TSC_CR_MCV_2 | TSC_CR_MCV_1 | TSC_CR_TSCE; /* (1) */
-//  TSC->IOHCR &= (uint32_t)(~(TSC_IOHCR_G3_IO1 | TSC_IOHCR_G3_IO2)); /* (hysteresis disable) */
-//
-//TSC->IOSCR |= (1 << TSC_IOSCR_G3_IO1); /* (sampling) */
-//TSC->IOCCR |= (1 << TSC_IOCCR_G3_IO2); /* (channel) */
-//TSC->IOGCSR |= (1 << TSC_IOGCSR_G3E);
-//
 TSC->CR |= (1 << TSC_CR_TSCE);
-//TSC->CR |= (1 << TSC_CR_START);
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -115,18 +105,12 @@ HAL_Delay(1);
 	  TSC->CR |= (1 << TSC_CR_TSCE);
 //	  while((TSC -> CR & TSC_CR_START)!=0){};	//check of ready (start bit = 0)
 	  while (HAL_TSC_GetState(&htsc) == HAL_TSC_STATE_BUSY){}
+	  __HAL_TSC_CLEAR_FLAG(&htsc, (TSC_FLAG_EOA | TSC_FLAG_MCE));
 	  HAL_TSC_IODischarge(&htsc, ENABLE);
 	  HAL_Delay(10);
-	  __HAL_TSC_CLEAR_FLAG(&htsc, (TSC_FLAG_EOA | TSC_FLAG_MCE));
 	  if (HAL_TSC_GroupGetStatus(&htsc, TSC_GROUP3_IDX) == TSC_GROUP_COMPLETED){
 	      OUT = HAL_TSC_GroupGetValue(&htsc, TSC_GROUP3_IDX);
 	  }
-
-//	  TSC->CR |= (1 << TSC_CR_START);
-////		  OUT = TSC->IOGXCR[2];	// for group 3, correct
-//	  OUT=HAL_TSC_GroupGetValue(&htsc, TSC_GROUP3_IDX);		//correct
-//	  TSC->IOCCR &= ~0b1111; // отключение всех каналов группы
-
 
     /* USER CODE END WHILE */
 
